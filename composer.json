@@ -15,7 +15,7 @@
             "ivoglent\\yii2\\apm\\": "./src"
         }
     },
-    "license": "Apache License 2.0",
+    "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Ivoglent Nguyen",
