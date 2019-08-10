@@ -1,0 +1,25 @@
+{
+    "name": "ivoglent/yii2-elastic-apm",
+    "description": "Elastic Agent for Yii2 Framework",
+    "type": "module",
+    "require": {
+        "php": ">=7.1.0",
+        "yiisoft/yii2": "~2.0.14",
+        "ivoglent/elastic-apm-agent-v2": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "ivoglent\\yii2\\apm\\": "./src"
+        }
+    },
+    "license": "Apache License 2.0",
+    "authors": [
+        {
+            "name": "Ivoglent Nguyen",
+            "email": "ivoglent@gmail.com"
+        }
+    ]
+}
