@@ -37,28 +37,38 @@ class Module extends \yii\base\Module implements BootstrapInterface
     public function init()
     {
         parent::init();
-        if (empty($this->configs['agent'])) {
-            throw new InvalidConfigException('Missing config for APM agent');
-        }
-        $agentConfig = $this->configs['agent'];
-        $config = new Config($agentConfig['name'], \Yii::$app->version, $agentConfig['serverUrl'], $agentConfig['token']);
-        $fromework = new Framework([
-            'name' => 'Yii2',
-            'version' => \Yii::getVersion()
-        ]);
-        $config->setFramework($fromework);
-        $config->setEnvironment(YII_ENV);
-
-        if (!\Yii::$app->user->isGuest) {
-            $user = new User([
-                'id' => \Yii::$app->user->getId()
+        if ($this->enabled && !$this->isAssetRequest()) {
+            if (empty($this->configs['agent'])) {
+                throw new InvalidConfigException('Missing config for APM agent');
+            }
+            $agentConfig = $this->configs['agent'];
+            $config = new Config($agentConfig['name'], \Yii::$app->version, $agentConfig['serverUrl'], $agentConfig['token']);
+            $fromework = new Framework([
+                'name' => 'Yii2',
+                'version' => \Yii::getVersion()
             ]);
-            $config->setUser($user);
+            $config->setFramework($fromework);
+            $config->setEnvironment(YII_ENV);
+
+            if (!\Yii::$app->user->isGuest) {
+                $user = new User([
+                    'id' => \Yii::$app->user->getId()
+                ]);
+                $config->setUser($user);
+            }
+            \Yii::info('APM module init', 'apm');
+
+            $this->agent = new Agent($config);
         }
-        \Yii::info('APM module init', 'apm');
 
-        $this->agent = new Agent($config);
+    }
 
+    /**
+     * @return false|int
+     */
+    private function isAssetRequest() {
+        $url = $_SERVER['REQUEST_URI'];
+        return preg_match('/\.(js|css|png|jpeg|jpg|map|mp4|avi|mp3|mov)$/i', $url);
     }
 
     /**
@@ -77,14 +87,8 @@ class Module extends \yii\base\Module implements BootstrapInterface
      */
     public function bootstrap($app)
     {
-        if ($this->enabled) {
+        if ($this->enabled && !$this->isAssetRequest()) {
             \Yii::info('APM module booting', 'apm');
-            $app->getLog()->targets[] = new LogTarget([
-                'categories' =>  ['yii\db\Command::query', 'yii\db\Command::execute'],
-                'levels' => ['profile'],
-                'agent' => $this->agent
-            ]);
-            $app->db->enableProfiling = true;
             $app->setComponents([
                 'apmAgent' => $this->agent,
                 'consoleListener' => [
@@ -92,10 +96,14 @@ class Module extends \yii\base\Module implements BootstrapInterface
                 ],
                 'requestListener' => [
                     'class' => RequestListener::class
-                ]
+                ],
+                'queryListener' => [
+                    'class' => QueryListener::class
+                ],
             ]);
             $app->requestListener->start();
             $app->consoleListener->start();
+            $app->queryListener->start();
 
         }
     }

@@ -37,11 +37,39 @@ class RequestListener extends Listener
         /** @var Application $sender */
         $sender = $event->sender;
         if (!\Yii::$app->request->isOptions) {
-            $result = (string) $sender->response->getStatusCode();
-            $this->agent->getTransaction()->setResult($result);
+            $result = $this->convertStatusCode($sender->response->getStatusCode());
+            //$this->agent->getTransaction()->setResult($result);
+            //$this->agent->getTransaction()->stop($result);
+            $this->agent->stopTransaction($result);
         }
     }
 
+    /**
+     * @param $code
+     * @return string
+     */
+    private function convertStatusCode($code) {
+        if ($code >= 100 && $code < 200) {
+            return '1xx';
+        }
+        if ($code >= 200 && $code < 300) {
+            return '2xx';
+        }
+        if ($code >= 300 && $code < 400) {
+            return '3xx';
+        }
+        if ($code >= 400 && $code < 500) {
+            return '4xx';
+        }
+        if ($code >= 500 && $code < 600) {
+            return '5xx';
+        }
+    }
+
+    /**
+     * @param ActionEvent $event
+     * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
+     */
     public function beforeAction(ActionEvent $event) {
         \Yii::info('Action start', 'apm');
         if (!\Yii::$app->request->isOptions) {
