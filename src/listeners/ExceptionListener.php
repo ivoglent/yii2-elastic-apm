@@ -12,6 +12,7 @@ use yii\console\ErrorHandler;
 
 class ExceptionListener extends Listener
 {
+    public $skipExceptions = [];
     public function init()
     {
         parent::init();
@@ -26,7 +27,15 @@ class ExceptionListener extends Listener
     public function onError(Event $event) {
         /** @var WebErrorHandler|ConsoleErrorHandler $sender */
         $sender = $event->sender;
-        $this->agent->notifyException($sender->errorException);
-        $this->agent->stopTransaction('5xx');
+        foreach ($this->skipExceptions as $exception) {
+            if ($sender->errorException instanceof $exception) {
+                return;
+            }
+        }
+        if ($this->agent->transactionStarted) {
+            $this->agent->notifyException($sender->errorException);
+            $this->agent->stopTransaction('5xx');
+        }
+
     }
 }

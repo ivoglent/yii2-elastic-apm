@@ -13,6 +13,7 @@ use ivoglent\yii2\apm\listeners\ConsoleListener;
 use ivoglent\yii2\apm\listeners\QueryListener;
 use ivoglent\yii2\apm\listeners\ExceptionListener;
 use ivoglent\yii2\apm\listeners\RequestListener;
+use ivoglent\yii2\apm\listeners\TraceListener;
 use ivoglent\yii2\apm\listeners\WorkerListener;
 use Monolog\Logger;
 use yii\base\Application;
@@ -122,7 +123,8 @@ class Module extends \yii\base\Module implements BootstrapInterface
             if (PHP_SAPI === 'cli') {
                 $components = array_merge($components, [
                     'consoleListener' => [
-                        'class' => ConsoleListener::class
+                        'class' => ConsoleListener::class,
+                        'skipCommands' => isset($this->configs['skipCommands']) ? $this->configs['skipCommands'] : []
                     ]
                 ]);
             } else {
@@ -139,10 +141,14 @@ class Module extends \yii\base\Module implements BootstrapInterface
                     'class' => QueryListener::class
                 ],
                 'exceptionListener' => [
-                    'class' => ExceptionListener::class
+                    'class' => ExceptionListener::class,
+                    'skipExceptions' => isset($this->configs['skipExceptions']) ? $this->configs['skipExceptions'] : []
                 ],
                 'workerListener' => [
                     'class' => WorkerListener::class
+                ],
+                'traceListener' => [
+                    'class' => TraceListener::class
                 ],
             ]);
             $app->setComponents($components);
