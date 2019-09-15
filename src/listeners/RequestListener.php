@@ -12,6 +12,7 @@ use yii\base\ActionEvent;
 use yii\base\Event;
 use yii\web\Application;
 use yii\web\Controller;
+use yii\web\Response;
 
 class RequestListener extends Listener
 {
@@ -23,7 +24,7 @@ class RequestListener extends Listener
         $this->skipActions = array_merge($this->skipActions, [
             Yii::$app->errorHandler->errorAction
         ]);
-        \Yii::$app->on(Application::EVENT_AFTER_REQUEST, [$this, 'afterRequest']);
+        Event::on(Response::class, Response::EVENT_AFTER_SEND, [$this, 'afterRequest']);
         Event::on(Controller::class, Controller::EVENT_BEFORE_ACTION, [$this, 'beforeAction']);
         if (!\Yii::$app->request->isOptions) {
             $txtName = \Yii::$app->request->url;
@@ -37,7 +38,7 @@ class RequestListener extends Listener
         /** @var Application $sender */
         $sender = $event->sender;
         if (!\Yii::$app->request->isOptions && $this->agent->transactionStarted) {
-            $result = $this->convertStatusCode($sender->response->getStatusCode());
+            $result = $this->convertStatusCode(\Yii::$app->response->getStatusCode());
             //$this->agent->getTransaction()->setResult($result);
             //$this->agent->getTransaction()->stop($result);
             $this->agent->stopTransaction($result);

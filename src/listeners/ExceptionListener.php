@@ -18,6 +18,7 @@ class ExceptionListener extends Listener
         parent::init();
         Event::on(ConsoleErrorHandler::class, ConsoleErrorHandler::EVENT_ON_ERROR, [$this, 'onError']);
         Event::on(WebErrorHandler::class, WebErrorHandler::EVENT_ON_ERROR, [$this, 'onError']);
+        Event::on(WebErrorHandler::class, WebErrorHandler::EVENT_ON_APP_ERROR, [$this, 'onError']);
     }
 
     /**

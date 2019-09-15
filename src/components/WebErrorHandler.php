@@ -12,4 +12,5 @@ class WebErrorHandler extends ErrorHandler
 {
     use ErrorHandlerTrait;
     const EVENT_ON_ERROR    =   'onError';
+    const EVENT_ON_APP_ERROR    =   'onAppError';
 }

@@ -27,7 +27,12 @@ class Agent extends BaseAgent
     {
         $request = $this->makeRequest();
         $logs = (sprintf('Sending data %s to endpoint %s', $request->getBody()->getContents(), $request->getUri()));
-        file_put_contents(\Yii::getAlias('@digico/frontend/runtime/logs/apm.log'), $logs);
-        return parent::send($request);
+        \Yii::info($logs, 'apm');
+        try {
+            return parent::send($request);
+        } catch (\Exception $e) {
+            \Yii::error($e);
+        }
+        return false;
     }
 }
