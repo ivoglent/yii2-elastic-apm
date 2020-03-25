@@ -23,7 +23,7 @@ class Agent extends BaseAgent
         $this->transactionStarted = false;
     }
 
-    public function send(?RequestInterface $request = null): bool
+    /*public function send(?RequestInterface $request = null): bool
     {
         $request = $this->makeRequest();
         $logs = (sprintf('Sending data %s to endpoint %s', $request->getBody()->getContents(), $request->getUri()));
@@ -34,5 +34,5 @@ class Agent extends BaseAgent
             \Yii::error($e);
         }
         return false;
-    }
+    }*/
 }
