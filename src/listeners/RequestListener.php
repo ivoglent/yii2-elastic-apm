@@ -24,7 +24,8 @@ class RequestListener extends Listener
         $this->skipActions = array_merge($this->skipActions, [
             Yii::$app->errorHandler->errorAction
         ]);
-        Event::on(Response::class, Response::EVENT_AFTER_SEND, [$this, 'afterRequest']);
+        //Event::on(Response::class, Response::EVENT_AFTER_SEND, [$this, 'afterRequest']);
+        register_shutdown_function([$this, 'afterRequest']);
         Event::on(Controller::class, Controller::EVENT_BEFORE_ACTION, [$this, 'beforeAction']);
         if (!\Yii::$app->request->isOptions) {
             $txtName = \Yii::$app->request->url;
