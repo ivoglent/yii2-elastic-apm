@@ -39,53 +39,12 @@ class Module extends \yii\base\Module implements BootstrapInterface
     /** @var LogTarget */
     private $logTarget;
 
+    private $ready = false;
 
     public function init()
     {
         parent::init();
         \Yii::setAlias('ivoglent/yii2/apm', __DIR__);
-        if ($this->enabled && !$this->isAssetRequest()) {
-            if (empty($this->configs['agent'])) {
-                throw new InvalidConfigException('Missing config for APM agent');
-            }
-            $agentConfig = $this->configs['agent'];
-            $config = new Config($agentConfig['name'], \Yii::$app->version, $agentConfig['serverUrl'], $agentConfig['token']);
-            $fromework = new Framework([
-                'name' => 'Yii2',
-                'version' => \Yii::getVersion()
-            ]);
-            $config->setFramework($fromework);
-            $config->setEnvironment(YII_ENV);
-
-            /*if (!\Yii::$app->user->isGuest) {
-                $user = new User([
-                    'id' => \Yii::$app->user->getId()
-                ]);
-                $config->setUser($user);
-            }*/
-            \Yii::info('APM module init', 'apm');
-
-            $this->agent = new Agent($config);
-
-            if (PHP_SAPI === 'cli') {
-                \Yii::$app->setComponents([
-                    'errorHandler' => [
-                        'class' => ConsoleErrorHandler::class,
-                    ]
-                ]);
-            } else {
-                \Yii::$app->setComponents([
-                    'errorHandler' => [
-                        'class' => WebErrorHandler::class,
-                        'errorAction' => '/' . Yii::$app->errorHandler->errorAction
-                    ]
-                ]);
-            }
-
-            \Yii::$app->errorHandler->register();
-
-        }
-
     }
 
     /**
@@ -116,7 +75,39 @@ class Module extends \yii\base\Module implements BootstrapInterface
     public function bootstrap($app)
     {
         $components = [];
-        if ($this->enabled) {
+        if ($this->enabled && !$this->isAssetRequest()) {
+            if (empty($this->configs['agent'])) {
+                throw new InvalidConfigException('Missing config for APM agent');
+            }
+            $agentConfig = $this->configs['agent'];
+            $config = new Config($agentConfig['name'], \Yii::$app->version, $agentConfig['serverUrl'], $agentConfig['token']);
+            $fromework = new Framework([
+                'name' => 'Yii2',
+                'version' => \Yii::getVersion()
+            ]);
+            $config->setFramework($fromework);
+            $config->setEnvironment(YII_ENV);
+
+            \Yii::info('APM module init', 'apm');
+
+            $this->agent = new Agent($config);
+
+            if (PHP_SAPI === 'cli') {
+                \Yii::$app->setComponents([
+                    'errorHandler' => [
+                        'class' => ConsoleErrorHandler::class,
+                    ]
+                ]);
+            } else {
+                \Yii::$app->setComponents([
+                    'errorHandler' => [
+                        'class' => WebErrorHandler::class,
+                        'errorAction' => '/' . Yii::$app->errorHandler->errorAction
+                    ]
+                ]);
+            }
+
+            \Yii::$app->errorHandler->register();
             \Yii::info('APM module booting', 'apm');
             if (PHP_SAPI === 'cli') {
                 $components = array_merge($components, [
@@ -126,13 +117,11 @@ class Module extends \yii\base\Module implements BootstrapInterface
                     ]
                 ]);
             } else {
-                if (!$this->isAssetRequest()) {
-                    $components = array_merge($components, [
-                        'requestListener' => [
-                            'class' => RequestListener::class
-                        ]
-                    ]);
-                }
+                $components = array_merge($components, [
+                    'requestListener' => [
+                        'class' => RequestListener::class
+                    ]
+                ]);
             }
             $components = array_merge($components, [
                 'queryListener' => [
@@ -156,6 +145,15 @@ class Module extends \yii\base\Module implements BootstrapInterface
                     $component->start();
                 }
             }
+            $this->ready = true;
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReady(): bool
+    {
+        return $this->ready;
     }
 }
