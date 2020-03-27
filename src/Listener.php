@@ -16,7 +16,7 @@ class Listener extends Component
     public function init()
     {
         parent::init();
-        $this->agent = \Yii::$app->apmAgent;
+        $this->agent = \Yii::$app->getModule('apm')->getAgent();
     }
 
     public function start() {

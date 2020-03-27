@@ -115,9 +115,7 @@ class Module extends \yii\base\Module implements BootstrapInterface
      */
     public function bootstrap($app)
     {
-        $components = [
-            'apmAgent' => $this->agent,
-        ];
+        $components = [];
         if ($this->enabled) {
             \Yii::info('APM module booting', 'apm');
             if (PHP_SAPI === 'cli') {
