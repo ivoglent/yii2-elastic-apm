@@ -4,6 +4,8 @@
 namespace ivoglent\yii2\apm;
 
 use Elastic\Apm\PhpAgent\Agent as BaseAgent;
+use Elastic\Apm\PhpAgent\Model\Context\SpanContext;
+use Elastic\Apm\PhpAgent\Model\Span;
 use Exception;
 use Psr\Http\Message\RequestInterface;
 use Yii;
@@ -19,6 +21,31 @@ class Agent extends BaseAgent
             $this->transactionStarted = true;
         } catch (Exception $e) {
             $this->transactionStarted = false;
+            Yii::error($e->getMessage());
+        }
+    }
+
+    public function startTrace(string $name, string $type): Span
+    {
+        try {
+            return parent::startTrace($name, $type);
+        } catch (\Exception $e) {
+            Yii::error($e->getMessage());
+        }
+    }
+
+    public function stopTrace(?string $id = null, ?SpanContext $context = null) {
+        try {
+            return parent::stopTrace($id, $context);
+        } catch (\Exception $e) {
+            Yii::error($e->getMessage());
+        }
+    }
+
+    public function notifyException(\Throwable $throwable) {
+        try {
+            return parent::notifyException($throwable);
+        } catch (\Exception $e) {
             Yii::error($e->getMessage());
         }
     }
