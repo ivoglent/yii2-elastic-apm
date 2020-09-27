@@ -32,6 +32,11 @@ class Agent extends BaseAgent
         } catch (\Exception $e) {
             Yii::error($e->getMessage());
         }
+        //Fake span
+        return new Span([
+            'name' => $name,
+            'type' => $type
+        ]);
     }
 
     public function stopTrace(?string $id = null, ?SpanContext $context = null) {
