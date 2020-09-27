@@ -2,7 +2,7 @@
     "name": "ivoglent/yii2-elastic-apm",
     "description": "Elastic Agent for Yii2 Framework",
     "type": "module",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "require": {
         "php": ">=7.1.0",
         "yiisoft/yii2": "~2.0.14",
