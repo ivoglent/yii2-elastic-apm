@@ -24,6 +24,7 @@ class ExceptionListener extends Listener
     /**
      * @param Event $event
      * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function onError(Event $event) {
         /** @var WebErrorHandler|ConsoleErrorHandler $sender */
@@ -33,7 +34,7 @@ class ExceptionListener extends Listener
                 return;
             }
         }
-        if ($this->agent->transactionStarted) {
+        if ($this->agent->isReady()) {
             $this->agent->notifyException($sender->errorException);
             $this->agent->stopTransaction('5xx');
         }

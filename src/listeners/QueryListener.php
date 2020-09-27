@@ -27,17 +27,21 @@ class QueryListener extends Listener
     public function beforeQuery(Event $event) {
         /** @var Command $command */
         $command = $event->sender;
-        $this->span = $this->agent->startTrace($command->getName(), 'query');
+        if ($this->agent->isReady()) {
+            $this->span = $this->agent->startTrace($command->getName(), 'query');
+        }
     }
 
     public function afterQuery(Event $event) {
-        /** @var Command $command */
-        $command = $event->sender;
-        $context = new DbContext([
-            'spanType' => 'db',
-            'type' => 'query',
-            'statement' => $command->getQuery()
-        ]);
-        $this->agent->stopTrace($this->span->getId(), $context);
+        if ($this->agent->isReady()) {
+            /** @var Command $command */
+            $command = $event->sender;
+            $context = new DbContext([
+                'spanType' => 'db',
+                'type' => 'query',
+                'statement' => $command->getQuery()
+            ]);
+            $this->agent->stopTrace($this->span->getId(), $context);
+        }
     }
 }

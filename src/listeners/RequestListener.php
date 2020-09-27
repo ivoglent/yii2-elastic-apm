@@ -4,8 +4,10 @@
 namespace ivoglent\yii2\apm\listeners;
 
 
+use Elastic\Apm\PhpAgent\Exception\RuntimeException;
 use Elastic\Apm\PhpAgent\Model\Context\DbContext;
 use Elastic\Apm\PhpAgent\Model\Span;
+use GuzzleHttp\Exception\GuzzleException;
 use ivoglent\yii2\apm\Listener;
 use Yii;
 use yii\base\ActionEvent;
@@ -26,19 +28,24 @@ class RequestListener extends Listener
         ]);
         Event::on(Response::class, Response::EVENT_AFTER_SEND, [$this, 'afterRequest']);
         Event::on(Controller::class, Controller::EVENT_BEFORE_ACTION, [$this, 'beforeAction']);
-        if (!\Yii::$app->request->isOptions) {
-            $txtName = \Yii::$app->request->url;
+        if (!Yii::$app->request->isOptions) {
+            $txtName = Yii::$app->request->url;
             $this->agent->startTransaction($txtName, 'http');
         }
 
     }
 
+    /**
+     * @param Event $event
+     * @throws RuntimeException
+     * @throws GuzzleException
+     */
     public function afterRequest(Event $event) {
-        \Yii::info('Request stop', 'apm');
+        Yii::info('Request stop', 'apm');
         /** @var Application $sender */
         $sender = $event->sender;
-        if (!\Yii::$app->request->isOptions && $this->agent->transactionStarted) {
-            $result = $this->convertStatusCode(\Yii::$app->response->getStatusCode());
+        if (!Yii::$app->request->isOptions && $this->agent->transactionStarted) {
+            $result = $this->convertStatusCode(Yii::$app->response->getStatusCode());
             //$this->agent->getTransaction()->setResult($result);
             //$this->agent->getTransaction()->stop($result);
             $this->agent->stopTransaction($result);
@@ -47,18 +54,18 @@ class RequestListener extends Listener
 
     /**
      * @param ActionEvent $event
-     * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
+     * @throws RuntimeException
      */
     public function beforeAction(ActionEvent $event) {
-        \Yii::info('Action start', 'apm');
-        $txtName = sprintf('%s.%s', \Yii::$app->controller->id, $event->action->id);
-        if (false ===  $this->agent->transactionStarted) {
+        Yii::info('Action start', 'apm');
+        $txtName = sprintf('%s.%s', Yii::$app->controller->id, $event->action->id);
+        if (false ===  $this->agent->isReady()) {
             $this->agent->startTransaction($txtName, 'http');
         }
-        if (!empty(\Yii::$app->controller->module)) {
-            $txtName = \Yii::$app->controller->module->id . '.' . $txtName;
+        if (!empty(Yii::$app->controller->module)) {
+            $txtName = Yii::$app->controller->module->id . '.' . $txtName;
         }
-        if (!\Yii::$app->request->isOptions && !$this->isSkipActions(str_replace('.', '/', $txtName))) {
+        if (!Yii::$app->request->isOptions && !$this->isSkipActions(str_replace('.', '/', $txtName))) {
             $this->agent->getTransaction()->setName($txtName);
         }
 

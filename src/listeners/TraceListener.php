@@ -30,19 +30,23 @@ class TraceListener extends Listener
      * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
      */
     public function startTrace(TraceEvent $event) {
-        \Yii::info('Start trace: ' . $event->getTraceName());
-        $this->span = $this->agent->startTrace($event->getTraceName(), $event->getTraceType());
+        if ($this->agent->isReady()) {
+            \Yii::info('Start trace: ' . $event->getTraceName());
+            $this->span = $this->agent->startTrace($event->getTraceName(), $event->getTraceType());
+        }
     }
 
     /**
      * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
      */
     public function endTrace(Event $event) {
-        \Yii::info('End trace');
-        $context = null;
-        if ($event instanceof TraceEvent) {
-            $context = new SpanContext($event->getContext());
+        if ($this->agent->isReady()) {
+            \Yii::info('End trace');
+            $context = null;
+            if ($event instanceof TraceEvent) {
+                $context = new SpanContext($event->getContext());
+            }
+            $this->agent->stopTrace($this->span->getId(), $context);
         }
-        $this->agent->stopTrace($this->span->getId(), $context);
     }
 }

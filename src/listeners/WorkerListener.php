@@ -4,7 +4,10 @@
 namespace ivoglent\yii2\apm\listeners;
 
 
+use Elastic\Apm\PhpAgent\Exception\RuntimeException;
+use GuzzleHttp\Exception\GuzzleException;
 use ivoglent\yii2\apm\Listener;
+use Yii;
 use yii\base\ActionEvent;
 use yii\base\Event;
 use yii\console\Application;
@@ -22,26 +25,30 @@ class WorkerListener extends Listener
      * @param Event $event
      */
     public function beforeExecute(Event $event) {
-        $sender = $event->sender;
-        \Yii::info('Worker executing...');
-        if ($sender instanceof WorkerInterface) {
-            $txtName = $sender->getName();
-            \Yii::info('Worker start: ' . $txtName, 'apm');
-            $this->agent->startTransaction($txtName, 'worker');
+        if ($this->agent->isReady()) {
+            $sender = $event->sender;
+            Yii::info('Worker executing...');
+            if ($sender instanceof WorkerInterface) {
+                $txtName = $sender->getName();
+                Yii::info('Worker start: ' . $txtName, 'apm');
+                $this->agent->startTransaction($txtName, 'worker');
+            }
         }
     }
 
     /**
      * @param ActionEvent $event
-     * @throws \Elastic\Apm\PhpAgent\Exception\RuntimeException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws RuntimeException
+     * @throws GuzzleException
      */
     public function afterExecute(Event $event) {
-        $sender = $event->sender;
-        \Yii::info('Worker stopped!');
-        if ($sender instanceof WorkerInterface) {
-            $result = $sender->getResult();
-            $this->agent->stopTransaction($result);
-        }
+       if ($this->agent->isReady()) {
+           $sender = $event->sender;
+           Yii::info('Worker stopped!');
+           if ($sender instanceof WorkerInterface) {
+               $result = $sender->getResult();
+               $this->agent->stopTransaction($result);
+           }
+       }
     }
 }
