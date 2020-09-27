@@ -1,8 +1,8 @@
 {
     "name": "ivoglent/yii2-elastic-apm",
     "description": "Elastic Agent for Yii2 Framework",
-    "type": "yii2-extension",
-    "version": "1.0.4",
+    "type": "module",
+    "version": "1.0.5",
     "require": {
         "php": ">=7.1.0",
         "yiisoft/yii2": "~2.0.14",
@@ -14,9 +14,6 @@
         }
     },
     "license": "BSD-3-Clause",
-    "extra": {
-        "bootstrap": "ivoglent\\yii2\\apm\\Module"
-    },
     "repositories": [
         {
             "type": "composer",
